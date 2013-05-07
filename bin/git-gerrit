@@ -730,7 +730,7 @@ initGerrit() {
 }
 
 openChange() {
-    local change="$CHANGE" user_change="$1" open_chagne="" ok=""
+    local change="$CHANGE" user_change="$1" open_change="" ok=""
 
     if [[ -n "$user_change" ]] ; then
         if is_integer "$user_change" ; then
