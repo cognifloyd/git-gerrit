@@ -857,7 +857,7 @@ DESCRIPTION
     allowing you to review the change.
 
   reset [-f]
-    Removes the current change branch created by the "start" subcommand and switches
+    Removes the current change branch created by the "apply" subcommand and switches
     back to tracking branch.
     Use -f to reset if the current branch has uncommitted changes, otherwise reset will
     refuse to do this.
