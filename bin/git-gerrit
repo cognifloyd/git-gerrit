@@ -270,10 +270,8 @@ getBranchInfo() {
     ORIG_TRACK=$TRACK
 }
 
-# git gerrit apply 100
-applyChange() {
-    abort_on_bad_repo_state
 
+setup_change_branch() {
     local change=$CHANGE branch=r$CHANGE current="$CURRENT"
     local remote="$REMOTE" track="$TRACK"
 
@@ -283,7 +281,7 @@ applyChange() {
         if has_remote_branch $remote $current ; then
             track="$current"
         else
-            local msg="Your may forget set upstream branch for branch ${GREEN}$current${RED}."
+            local msg="You may have forgetten to set upstream branch for branch ${GREEN}$current${RED}."
             local msg="${msg}\nSince the changes ${GREEN}$change${RED} must be applied on proper remote branch."
             local msg="${msg}\nType the following command to set:"
             local msg="${msg}\n${GREEN}git branch --set-upstream $current${RED} [upstream]."
@@ -291,15 +289,46 @@ applyChange() {
         fi
     fi
 
-    local track_branch="$remote/$track"
-
     # create a new branch based on the current tracking branch to work in
     $GIT branch -D $branch 2>/dev/null 1>&2
-    git checkout -b $branch $track_branch ||
+    $GIT checkout -b $branch $track_branch ||
         die "Unable to create a new branch '$branch'"
 
     # track original branch.
     set_track $branch $current $remote $track "$($GIT rev-parse $track_branch)"
+
+}
+
+# git gerrit checkout 100
+checkoutChange() {
+    abort_on_bad_repo_state
+    setup_change_branch
+
+    local change=$CHANGE branch=r$CHANGE current="$CURRENT"
+    local remote="$REMOTE" track="$TRACK"
+    local track_branch="$remote/$track"
+
+    #git fetch git://git.typo3.org/FLOW3/Packages/TYPO3.TYPO3 refs/changes/78/20578/3 && git checkout FETCH_HEAD
+    #Need to cherry pick each dependent change
+
+    # checkout the change in the new branch
+    local patch="$(patch_count_for_change $change)"
+    gerrit-cherry-pick $remote $change/$patch ||
+        die "Unable to checkout ±$change/$patch on top of $track_branch"
+
+    if [[ "$verbose" = true ]]; then
+        good "Successfully checked out ±$change so you can begin reviewing it"
+    fi
+}
+
+# git gerrit apply 100
+applyChange() {
+    abort_on_bad_repo_state
+    setup_change_branch
+
+    local change=$CHANGE branch=r$CHANGE current="$CURRENT"
+    local remote="$REMOTE" track="$TRACK"
+    local track_branch="$remote/$track"
 
     # apply the change to the new branch
     local patch="$(patch_count_for_change $change)"
@@ -790,6 +819,12 @@ queryChangesDetail() {
     echo "$gerrit_command_result" | less -FRSX
 }
 
+queryChangesDepends() {
+    getGerritServerAndProject
+    executeGerritCommand "query" "--current-patch-set" "--dependencies" "change:'$1'"
+    echo "$gerrit_command_result" | less -FRSX
+}
+
 #### usage ####
 printShortUsage() {
     cat << EOF
@@ -952,6 +987,11 @@ while true; do
             else
                 queryChanges $@
             fi
+            exit
+            ;;
+        checkout)
+            change_opt_check
+            checkoutChange
             exit
             ;;
         apply)
