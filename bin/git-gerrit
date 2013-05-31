@@ -764,14 +764,14 @@ queryChanges() {
         operators="status:open"
     fi
     getGerritServerAndProject
-    executeGerritCommand "query" "--current-patch-set" "--all-approvals" "project:${project}" $operators
-    echo "$gerrit_command_result" | less -FRSX
+    executeGerritCommand "query" "--format=json" "--current-patch-set" "--all-approvals" "project:${project}" $operators
+    echo "$gerrit_command_result" | fgc
 }
 
 queryChangesDetail() {
     getGerritServerAndProject
-    executeGerritCommand "query" "--current-patch-set" "--all-approvals" "--patch-sets" "change:'$1'" "project:${project}"
-    echo "$gerrit_command_result" | less -FRSX
+    executeGerritCommand "query" "--format=json" "--current-patch-set" "--all-approvals" "--patch-sets" "change:'$1'" "project:${project}"
+    echo "$gerrit_command_result" | fgc
 }
 
 #### usage ####
