@@ -10,6 +10,10 @@ for line in fileinput.input():
                 + cd['currentPatchSet']['number'] + ' - Owner: ' \
                 + cd['owner']['email'] + ' - Status: ' + cd['status'] \
                 + ' - Subject: ' + cd['subject']
+        if cd['currentPatchSet']['approvals']:
+            for approval in cd['currentPatchSet']['approvals']:
+                print '\t' + approval['by']['email'] + ' - ' + approval['type'] \
+                        + '.' + approval['value'] + ' - ' + approval['description']
     except KeyError:
         print 'found ' + str(cd['rowCount']) + ' matching change(s)'
 
