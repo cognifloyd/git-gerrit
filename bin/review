@@ -1,0 +1,86 @@
+#!/bin/bash
+
+. $(dirname ${BASH_SOURCE[0]})/gerrit-info
+
+#http://unix.stackexchange.com/a/28589/77115
+find_flow_distribution () {
+  up_to=$2
+  curdir=`pwd`
+  result=1
+
+  while [[ "`pwd`" != '/' ]]; do
+    if eval "[[ -f flow ]]"; then
+			distribution_dir=`pwd`
+      result=0
+      break
+    fi
+    cd ..
+  done
+  cd $curdir
+  return $result
+}
+
+check_git_dir
+
+if ! find_flow_distribution; then
+	die "This is not in a flow-based distribution: $(pwd)"
+fi
+
+if [ $1 == init ]; then
+	repos=$(find ${distribution_dir} -name .git -type d -prune | grep -v "Packages/Libraries" | sed -e "s_\.git__g")
+	for x in $repos; do
+		cd $x
+		good "Init-ing $x"
+		$GIT gerrit $1
+		echo "\n"
+	done
+	exit 0
+fi
+
+if [ $1 == reset ] || [ $1 == update ]; then
+	repos=$(find ${distribution_dir} -name .git -type d -prune | grep -v "Packages/Libraries" | sed -e "s_\.git__g")
+	for x in $repos; do
+		cd $x
+		git_set_current
+		if is_review_branch $CURRENT; then
+			good "Resetting $x"
+			$GIT gerrit $1
+			echo ""
+		fi
+	done
+	exit 0
+fi
+
+for x in $@; do
+	cd $distribution_dir
+	check_for_valid_change $x
+	change=$CHANGE
+
+	executeGerritCommand "query" "change:$change"
+
+	project=$(echo "$gerrit_command_result" | grep "project:" | head -n1 | awk '{print $2}')
+	topic=$(echo "$gerrit_command_result" | grep "topic:" | head -n1 | awk '{print $2}')
+
+	if [[ $project == Packages/* ]]; then
+		package=${project#Packages/}
+		package_dir=$(ls ${distribution_dir}/Packages/*/${package} -d)
+	elif [[ $project == Flow/BuildEssentials ]]
+		package=${project#Flow/}; then
+		package_dir=$(ls ${distribution_dir}/Build/${package} -d)
+	elif [[ $project == */Distributions/* ]]; then
+		package=${project}
+		package_dir=$distribution_dir
+	elif [[ $project == Flow/Applications/* ]]; then
+		package=${project#Flow/Applications/}
+		package_dir=$(ls ${distribution_dir}/Packages/Applications/${package} -d)
+	else
+		die "unknown project (${project}) for change #${change}"
+	fi
+
+	cd $package_dir
+
+	good "Applying change $change to $package"
+	$GIT gerrit apply $change
+	good "Applied change $change to $package \n"
+done
+exit 0
