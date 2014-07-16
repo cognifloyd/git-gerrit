@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 import fileinput
 import json
@@ -6,14 +6,24 @@ import json
 for line in fileinput.input():
     cd = json.loads(line)
     try:
-        print cd['number'] + ' - Branch: ' + cd['branch'] + ' - Patchset: ' \
-                + cd['currentPatchSet']['number'] + ' - Owner: ' \
-                + cd['owner']['email'] + ' - Status: ' + cd['status'] \
-                + ' - Subject: ' + cd['subject']
+        print cd['number'] \
+                + ' - Project: ' + cd['project'] \
+                + ' - Branch: ' + cd['branch'] \
+                + ' - Owner: ' + cd['owner']['username'] + ' (' + cd['owner']['name'] + ' <' + cd['owner']['email'] + '>)' \
+                + '\n\t' \
+                + 'url: ' + cd['url'] \
+                + '\n\t' \
+                + 'topic: ' + cd['topic'] \
+                + '\n\t' \
+                + 'Status: ' + cd['status'] \
+                + ' - Patchset: ' + cd['currentPatchSet']['number'] \
+                + '\n\t' \
+                + 'Subject: ' + cd['subject']
         if cd['currentPatchSet']['approvals']:
             for approval in cd['currentPatchSet']['approvals']:
-                print '\t' + approval['by']['email'] + ' - ' + approval['type'] \
-                        + '.' + approval['value'] + ' - ' + approval['description']
+                print '\t\t' + approval['by']['email'] \
+                        + ' - ' + approval['type'] \
+                        + '.' + approval['value']
     except KeyError:
         print 'found ' + str(cd['rowCount']) + ' matching change(s)'
 
