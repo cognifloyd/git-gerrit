@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # package information.
-url="https://github.com/magomi/git-gerrit/tarball/fmtQry"
-md5="3289ad86d22c3422701361a639d67573"
+url="https://github.com/cognifloyd/git-gerrit/tarball/v0.5.0"
+md5="1d722ddb607536504ffd84957c536401"
 
 src_bin=bin
 src_completion=completion
@@ -20,7 +20,7 @@ die() {
 #Let mac user use homebrew to install.
 name=$(uname)
 if [ "Darwin" = "$name" ] ; then
-    die "Use homebrew to install: brew install https://raw.github.com/magomi/git-gerrit/fmtQry/git-gerrit.rb"
+    die "Use homebrew to install: brew install https://raw.github.com/cognifloyd/git-gerrit/master/git-gerrit.rb"
 fi
 
 # download package.

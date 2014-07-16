@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # package information.
-url="https://github.com/fbzhong/git-gerrit/tarball/master"
+url="https://github.com/cognifloyd/git-gerrit/tarball/master"
 
 src_bin=bin
 src_completion=completion

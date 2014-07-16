@@ -7,6 +7,11 @@ This project is forked from my [gerrit-tools](https://github.com/fbzhong/gerrit-
 
 ## Change Logs
 
+    v0.5.0
+        + Added Flow-focused review tool
+        + code cleanups
+        * bug fixing.
+
     v0.3.0
         + squashing push commit to refs/changes/<number> in review branch.
         + add --all-approvals in changes command.
@@ -20,6 +25,26 @@ This project is forked from my [gerrit-tools](https://github.com/fbzhong/gerrit-
         * bug fix.
 
     v0.1.0 fork from gerrit tools.
+
+## review
+
+The review command finds the root of the flow distribution and then runs any applicable `git gerrit <command>` for each package that needs it.
+
+    // run a supported command on all applicable packages in distribution
+    // commands available: init, update, reset
+    review <command>
+    
+    // apply changes to appropriate package in distribution
+    review <changeid>[ <changeid>]*
+
+When one or more <changeid>s are provided, this queries gerrit to find
+out which project to apply them to, and then in the project folder
+runs `git gerrit apply <changeid>`. Each <changeid> is applied in
+succession, so if you select multiple changeids for the same project,
+be sure to correctly order them according to dependencies.
+
+Potential future work: Add `review topic:<topic>` to apply all the
+changes in a gerrit topic.
 
 ## gerrit-cherry-pick
 
@@ -173,17 +198,17 @@ By referencing the project [git-flow-completion](https://github.com/bobthecow/gi
 
 ### Mac OS X
 
-    brew install https://raw.github.com/fbzhong/homebrew-library/master/Library/git-gerrit.rb
+    brew install https://raw.github.com/cognifloyd/git-gerrit/master/git-gerrit.rb
 
 ### Linux
 
-    curl https://raw.github.com/fbzhong/git-gerrit/master/install.sh | bash
+    curl https://raw.github.com/cognifloyd/git-gerrit/master/install.sh | bash
 
 ## Installation (Latest Development Version)
 
 ### Mac OS X and Linux
 
-    curl https://raw.github.com/fbzhong/git-gerrit/master/develop.sh | bash
+    curl https://raw.github.com/cognifloyd/git-gerrit/master/develop.sh | bash
 
 or clone to local, then
 
@@ -196,6 +221,7 @@ Feel free to fork and send a pull request if you think you've improved anything.
 ##New BSD License
 
 Copyright (c) 2012, Robin Zhong <fbzhong@gmail.com>
+Copyright (c) 2014, Jacob Floyd <cognifloyd@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -230,3 +256,5 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * [Philipp Gampe](https://github.com/pgampe/gerrit-tools).
 
 * [Justin Hileman](https://github.com/bobthecow/git-flow-completion)
+
+* [Robin Zhong](https://github.com/fbzhong/git-gerrit)
