@@ -27,7 +27,7 @@ if ! find_flow_distribution; then
 fi
 
 if [ $1 == init ]; then
-	repos=$(find ${distribution_dir} -name .git -type d -prune | grep -v "Packages/Libraries" | sed -e "s_\.git__g")
+	repos=$(find ${distribution_dir}/ -name .git -type d -prune | grep -v "Packages/Libraries" | sed -e "s_\.git__g")
 	for x in $repos; do
 		cd $x
 		good "Init-ing $x"
@@ -38,7 +38,7 @@ if [ $1 == init ]; then
 fi
 
 if [ $1 == reset ] || [ $1 == update ]; then
-	repos=$(find ${distribution_dir} -name .git -type d -prune | grep -v "Packages/Libraries" | sed -e "s_\.git__g")
+	repos=$(find ${distribution_dir}/ -name .git -type d -prune | grep -v "Packages/Libraries" | sed -e "s_\.git__g")
 	for x in $repos; do
 		cd $x
 		git_set_current
@@ -56,14 +56,27 @@ for x in $@; do
 	check_for_valid_change $x
 	change=$CHANGE
 
-	executeGerritCommand "query" "change:$change"
+	executeGerritCommand "query" "change:$change" \
+		|| cd $curdir \
+			&& executeGerritCommand "query" "change:$change" \
+			&& cd $distribution_dir \
+		|| cd ${distribution_dir}/Packages/Framework/TYPO3.Flow \
+			&& executeGerritCommand "query" "change:$change" \
+			&& cd $distribution_dir \
+		|| die "Gerrit command failed"
 
 	project=$(echo "$gerrit_command_result" | grep "project:" | head -n1 | awk '{print $2}')
 	topic=$(echo "$gerrit_command_result" | grep "topic:" | head -n1 | awk '{print $2}')
 
 	if [[ $project == Packages/* ]]; then
 		package=${project#Packages/}
-		package_dir=$(ls ${distribution_dir}/Packages/*/${package} -d)
+		package_dir=$(ls ${distribution_dir}/Packages/*/${package} -d 2> /dev/null)
+		if [[ "$temp_pkg_dir" == "" ]]; then
+			package_dir=$( \
+				ls ${distribution_dir}/Packages/*/${package}* -d 2> /dev/null \
+				|| die "Couldn't Find the package to match the project")
+			package=${package_dir##/*/}
+		fi
 	elif [[ $project == Flow/BuildEssentials ]]
 		package=${project#Flow/}; then
 		package_dir=$(ls ${distribution_dir}/Build/${package} -d)
@@ -83,4 +96,7 @@ for x in $@; do
 	$GIT gerrit apply $change
 	good "Applied change $change to $package \n"
 done
+
+cd $curdir
+
 exit 0

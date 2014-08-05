@@ -134,6 +134,13 @@ getGerritServerAndProject() {
       port=""
     fi
 
+	if [[ "$host" =~ "http" ]]; then
+		host=''
+		project=''
+		port=''
+		return 1
+	fi
+
     project=${project%.git}
 
     port=${port%/*}
@@ -143,7 +150,7 @@ getGerritServerAndProject() {
 }
 
 executeGerritCommand() {
-    getGerritServerAndProject
+    getGerritServerAndProject || return 1
     gerrit_command_result=$($SSH $port $host gerrit $@)
 }
 
